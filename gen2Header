@@ -1,0 +1,870 @@
+<?xml version="1.0"?>
+<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="2.0" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" exclude-result-prefixes="xsi xs">
+	<xsl:output encoding="UTF-8" method="html"/>
+	<xsl:variable name="url" select="/context/default/request/completeUrl"/>
+	<xsl:variable name="metadesc" select="/context/default/cobrand/metadescription"/>
+	<xsl:variable name="genreid" select="/context/default/genre/id"/>
+	<xsl:variable name="genreId" select="//genreId"/>
+	<xsl:variable name="catid" select="/context/default/genre/categoryId"/>
+	<xsl:variable name="catdesc" select="/context/default/genre/categoryDesc"/>
+	<xsl:variable name="flowname" select="/context/default/flowName"/>
+	<xsl:variable name="pagetype" select="/context/default/pageType"/>
+	<xsl:variable name="pagename" select="/context/default/pageName"/>
+	<xsl:variable name="channelId" select="/context/default/genre/channelId"/>
+	<xsl:variable name="isGen3PageType" select="/context/default/gen3PageType"/>
+	<xsl:variable name="isNewEDPage" select="boolean(/context/default/isNewEDPage = 'true') or boolean(/context/default/gen3PageType = 'event')"/>
+	<xsl:variable name="isNewTDPage" select="boolean(/context/default/isNewTDPage = 'true') or boolean(/context/default/gen3PageType = 'ticket')"/>
+	<xsl:variable name="isABLPage" select="/context/default/user/isABLPage"/>
+	<!-- HPR - Start-->
+	<xsl:variable name="isGen3HomePage" select="boolean(/context/default/isNewHomePage = 'true') or boolean(/context/default/gen3PageType = 'homepage')"/>
+	<!-- HPR - End-->
+	<!-- Search Redesign - Gen3 Search PC variable Start-->
+	<xsl:variable name="isGen3Search" select="boolean(/context/default/IsGEN3Search and (/context/default/IsGEN3Search = 'true'))"/>
+	<!-- Search Redesign - End -->
+	<xsl:variable name="fname" select="if ($pagetype='SearchResult') then /context/default/user/defaultContact/firstName else /context/default/user/defaultContact/fname"/>
+	<!--<xsl:variable name="fname">Maximiliano</xsl:variable>-->
+	<xsl:variable name="ustat" select="/context/default/user/ustat"/>
+	<!--<xsl:variable name="ustat">1</xsl:variable>-->
+	<xsl:variable name="eventid" select="if (/context/default/event/id) then /context/default/event/id else 'default'"/>
+	<xsl:variable name="cobrand" select="/context/default/cobrand"/>
+	<xsl:variable name="cobrandid" select="/context/default/cobrand/id"/>
+	<xsl:variable name="cbdesc" select="/context/default/cobrand/name"/>
+	<xsl:variable name="cobrandname" select="/context/default/cobrand/machinename"/>
+
+	<xsl:variable name="staticdomain"
+	              select="if (/context/default/request/requestProtocol and /context/default/env/staticDomain and contains($url,'stubhub.com')) then concat(/context/default/request/requestProtocol,'://','cache1.stubhubstatic.com') else if (/context/default/request/requestProtocol and /context/default/env/staticDomain and not(contains($url,'stubhub.com'))) then concat(/context/default/request/requestProtocol,'://',/context/default/env/staticDomain) else ''"/>
+
+	<xsl:variable name="geo" select="/context/default/geography"/>
+	<xsl:variable name="genre" select="/context/default/genre"/>
+	<xsl:variable name="cobrandgroupid" select="/context/default/cobrand/groupid"/>
+	<xsl:variable name="geoid" select="/context/default/geography/id"/>
+	<xsl:variable name="venue" select="/context/default/venue"/>
+	<xsl:variable name="venueId" select="/context/default[1]/venue/nodeId"/>
+	<xsl:variable name="eventdesc" select="if (/context/default/event/seoTitle) then /context/default/event/seoTitle else 'default'"/>
+	<xsl:variable name="genredesc" select="if (/context/default/genre/seoTitle) then /context/default/genre/seoTitle else 'default'"/>
+	<xsl:variable name="geodesc" select="if (/context/default/geography/seoTitle) then /context/default/geography/seoTitle else 'default'"/>
+	<xsl:variable name="geoparentid" select="if (/context/default/geography/parentId) then /context/default/geography/parentId else 'default'"/>
+	<xsl:variable name="geo_parent_id" select="/context/default/event/geoParent/id"/>
+	<xsl:variable name="isonclickneeded" select="boolean(($genreid != '0' and $geoid = '0') or (boolean(/context/default/event/id) and $flowname != 'browse-ticket') or ($genreid = '0' and $geoid != '0') or (/context/default/geography/parentId = '709'))"/>
+	<xsl:variable name="genreparentid" select="/context/default/event/genreParent/id"/>
+	<xsl:variable name="sellflowbarcodeflow" select="boolean((//pageName = 'PlannedOutage') or (//pageName = 'DontHaveTicketYet') or (//pageName = 'EnterBarcode') or (//pageName = 'EnterBarcodeComplete') or (//pageName = 'SellErrorPage'))"/>
+	<!--<xsl:variable name="usergeo" select="if (/context/default/user/pgeo ne '') then /context/default/user/pgeo else if (/context/default/user/pgeo eq '' and /context/default/user/ipgid ne '') then /context/default/user/ipgid else 'default'"/>-->
+	<xsl:variable name="usergeo">0</xsl:variable>
+	<!--HPR - Start: Added for userGeoDetected variable fix -->
+	<xsl:variable name="userGeoDetected" select="if (/context/default/user/pgeo ne '') then /context/default/user/pgeo else if (/context/default/user/pgeo eq '' and /context/default/user/ipgid ne '') then /context/default/user/ipgid else '0'"/>
+	<!--HPR - End -->
+	<!-- Browse Redesign - Start-->
+	<xsl:variable name="isGen3GeoLeafPage" select="boolean(/context/default/gen3PageType = 'geoLeaf')"/>
+	<xsl:variable name="isGen3GenreLeafPage" select="boolean(/context/default/gen3PageType = 'genreLeaf')"/>
+	<xsl:variable name="isGen3IntermediateGenrePage" select="boolean(/context/default/gen3PageType = 'intermediateGenre')"/>
+	<xsl:variable name="isGen3IntermediateGeoPage" select="boolean(/context/default/gen3PageType = 'intermediateGeo')"/>
+	<!-- Browse Redesign - End-->
+	<xsl:variable name="sgeo" select="/context/default/user/sgeo"/>
+
+	<xsl:variable name="hdrdflt2">
+		<xsl:if test="$pagetype = 'SearchResult' or contains(/context/default/request/completeUrl,'venue_config_ID') or contains(/context/default/request/completeUrl,'-tickets/details/') or $flowname = 'confirm' or $custom/cdd-id = 'last-minute-tickets' or contains(/context/default/request/completeUrl,'press-box') or (($eventid = 'default' and not($genreid = '0' or $genreid = '') and $flowname = 'browse') and not($geoparentid = '0'))">
+			<xsl:text>true</xsl:text>
+		</xsl:if>
+	</xsl:variable>
+	<xsl:variable name="hdrdflt3">
+		<xsl:if test="($flowname = 'helpapp' or $flowname = 'eventRequestForm' or contains(/context/default/request/completeUrl,'sell-tickets') or $isABLPage = 'true') or (($eventid != 'default' and $genreid != '' and $flowname = 'browse' and not($isNewEDPage) and not($isNewTDPage)) or ($pagetype = 'BrowseEvent' and not($isNewEDPage)) and not($pagetype = 'SearchResult')) or ($pagetype = 'BrowseEvent' and $isNewEDPage) or ($pagetype = 'BrowseTicketDetail' and $isNewTDPage) or $isGen3HomePage or $isGen3Search or $isGen3GeoLeafPage or $isGen3IntermediateGeoPage or $isGen3GenreLeafPage or $isGen3IntermediateGenrePage">
+			<xsl:text>true</xsl:text>
+		</xsl:if>
+	</xsl:variable>
+
+	<xsl:variable name="partnerHeader"
+	              select="if ($genreid = '165237') then 'hdr_epl_everton' else if ($genreid = '708258') then 'hdr_epl_sunderland' else if ($genreid = '117017' or $genreid = '117117' or $genreid = '492282') then 'hdr_nba' else if ($genreid = '164987') then 'hdr_epl_tottenham-hotspur' else if ($genreid = '494067') then 'hdr_statoil_masters' else if ($genreid = '711354') then 'hdr_leicester_tigers' else if ($genreid = '720546' or $genreid = '720547' or $genreid = '720548') then 'hdr_aegon_tickets' else if ($geoid = '99499') then 'hdr_theo2' else if ($hdrdflt2 = 'true') then 'hdrdflt2' else if ($hdrdflt3 = 'true') then 'hdrdflt3' else 'hdrdflt'"/>
+
+	<xsl:variable name="custom" select="/context/custom"/>
+	<!-- Added for ABL starts -->
+	<xsl:variable name="myaccount" select="//context/default/user/showMyAccountLink"/>
+	<!-- Added for ABL ends -->
+	<!--mboxcreate variables-->
+	<xsl:variable name="channelID">
+		<xsl:choose>
+			<xsl:when test="/context/default/pageType">
+				<xsl:if test="$pagetype!='HomePage' and $pagetype!='SearchResult' and $pagename!='My Account/browse'">
+					<xsl:choose>
+						<xsl:when test="$pagetype='BrowseCategory' or $pagetype='BrowseGenre' or $pagetype='BrowseGenreLeaf'">
+							<xsl:value-of select="/context/default/genre/categoryId"/>
+						</xsl:when>
+						<xsl:otherwise>
+							<xsl:value-of select="/context/default/event/categoryId"/>
+						</xsl:otherwise>
+					</xsl:choose>
+				</xsl:if>
+			</xsl:when>
+			<xsl:otherwise>
+				<xsl:value-of select="/context/default/event/categoryId"/>
+			</xsl:otherwise>
+		</xsl:choose>
+	</xsl:variable>
+	<!--The genre/parentid value is passed as the genre_grand_parent when seen from the event point of view as the event goes one level inside the genre, the mbooxcreate logic queries from the event point of view"-->
+	<xsl:variable name="event_grand_parent">
+		<xsl:value-of select="/context/default/genre/parentId"/>
+	</xsl:variable>
+	<!--The genre/id value is passed as the genre_parent when seen from the event point of view as the event goes one level inside the genre, the mbooxcreate logic queries from the event point of view"-->
+	<xsl:variable name="event_parent">
+		<xsl:value-of select="/context/default/genre/id"/>
+	</xsl:variable>
+	<xsl:variable name="event_id">
+		<xsl:value-of select="/context/default/event/id"/>
+	</xsl:variable>
+	<xsl:variable name="domain"
+	              select="if(/context/default/user/domain != '') then /context/default/user/domain else if (/context/default/cobrand/domain) then /context/default/cobrand/domain else if (/context/default/domain) then /context/default/domain else then //domain"/>
+	<xsl:variable name="protocol"
+	              select="if (/context/default/request/requestProtocol) then concat(/context/default/request/requestProtocol,'://www') else if(contains(/context/default[1]/request[1]/completeUrl[1], 'https')) then 'https://www' else 'http://www'"/>
+	<xsl:variable name="wwwdomainurl" select="concat($protocol,$domain)"/>
+	<!--Parallelization of domains-->
+	<xsl:variable name="wwwDomain" select="/context/default/env/wwwDomain"/>
+	<xsl:variable name="siteNameTemp" select="substring-after($wwwDomain,'.')"/>
+	<xsl:variable name="siteName" select="substring-before($siteNameTemp,'.')"/>
+	<xsl:variable name="cache11" select="concat(/context/default/request/requestProtocol,'://',/context/default/env/cache11StaticDomain)"/>
+	<xsl:variable name="cache12" select="concat(/context/default/request/requestProtocol,'://',/context/default/env/cache12StaticDomain)"/>
+	<xsl:variable name="cache13" select="concat(/context/default/request/requestProtocol,'://',/context/default/env/cache13StaticDomain)"/>
+	<xsl:variable name="cache14" select="concat(/context/default/request/requestProtocol,'://',/context/default/env/cache14StaticDomain)"/>
+	<xsl:variable name="cache15" select="concat(/context/default/request/requestProtocol,'://',/context/default/env/cache15StaticDomain)"/>
+	<!--Parallelization of domains-->
+	<xsl:variable name="gen3PageType" select="/context/default/gen3PageType"/>
+	<xsl:variable name="allPageType">
+		<xsl:choose>
+			<xsl:when test="$gen3PageType !=''">
+				<xsl:value-of select="$gen3PageType"/>
+			</xsl:when>
+			<xsl:otherwise>
+				<xsl:value-of select="$pagetype"/>
+			</xsl:otherwise>
+		</xsl:choose>
+	</xsl:variable>
+
+	<xsl:template match="/">
+		<style>#.phoenix GridTop {
+max-height:180px;
+}</style>
+		<!-- COMMENTING OUT DEBUGGER: SHOULD NOT APPEAR IN PROD! -->
+		<!-- <div style="border:1px solid #6699CC;background-color:#F2F5F7; display:none;">
+	/Debug information (XML model as seen by element):<br/>
+		<textarea cols="50" rows="10">
+			<xsl:copy-of select="."/>
+		</textarea>
+	</div> -->
+		<!--mobileweb-->
+		<script type="text/javascript">getTheCookie = function(name){
+	             var nameDel = name + "=",
+	             cind = document.cookie.split(';');
+	             for (var i = 0, l = cind.length; i &lt; l; i++) {
+	             	var c = cind[i];
+	                while (c.charAt(0) == ' ') 
+	                	c = c.substring(1, c.length);
+	                    if (c.indexOf(nameDel) == 0) 
+	                            return c.substring(nameDel.length, c.length);
+	             };
+	             return null;
+             };
+
+
+                setTheCookie = function(name, value, isSession, expHours, domain, path){
+                var expStr, hours = (typeof expHours != "undefined") ? expHours : 365 * 24, date = new Date(), domainStr = domain? "; Domain="+domain : "", pathStr = path? "; Path="+path : "; Path=/";
+                date.setTime(date.getTime() + (hours * 60 * 60 * 1000));
+                expStr = isSession? "" : "; Expires=" + date.toGMTString();
+                document.cookie = name + "=" + value + domainStr + expStr + pathStr;
+                };</script>
+		<xsl:variable name="mobile_redirect_url_touch">
+			<xsl:choose>
+				<xsl:when test="/context/default/event/id">http://m<xsl:value-of select="$domain"/>/?event_id=<xsl:value-of select="/context/default/event/id"/></xsl:when>
+				<xsl:otherwise>http://m<xsl:value-of select="$domain"/>/</xsl:otherwise>
+			</xsl:choose>
+		</xsl:variable>
+		<xsl:variable name="mobile_redirect_url">
+			<xsl:choose>
+				<xsl:when test="/context/default/event/id">http://m<xsl:value-of select="$domain"/>/mobile/find/#eventId=<xsl:value-of select="/context/default/event/id"/></xsl:when>
+				<xsl:otherwise>http://m<xsl:value-of select="$domain"/>/mobile/find/</xsl:otherwise>
+			</xsl:choose>
+		</xsl:variable>
+		<script type="text/javascript">var ref = document.referrer;
+			if (ref.match("/checkout/mobile")) {
+			if (getCookie('sc.d') == 't') { document.location.href = "<xsl:value-of select="$mobile_redirect_url_touch"/>"; }else{ document.location.href = "<xsl:value-of select="$mobile_redirect_url"/>"; }
+			}</script>
+		<!--mobileweb-->
+		<xsl:if test="$pagetype = 'BrowseCategory' and $catid = '1'">
+			<script type="text/javascript" src="{$staticdomain}/resources/mojito/js/lib/TeaLeafCfg.js"></script>
+			<script type="text/javascript" src="{$staticdomain}/resources/mojito/js/lib/TeaLeaf.js"></script>
+		</xsl:if>
+
+
+		<!-- Bug 17836 -->
+		<xsl:if test="$pagetype='SearchResult'">
+			<script src="{$staticdomain}/promotions/scratch/lt/hp_ln.js" language="javascript"></script>
+		</xsl:if>
+		<!-- Bug 17836 -->
+
+		<script language="javascript" src="{$staticdomain}/promotions/scratch/lt/omniSearch_02.js"/>
+
+
+
+		<xsl:if test="$pagetype = 'search' or $pagetype = 'SearchResult'">
+			<div class="mboxDefault"></div>
+			<script language="JavaScript1.2">mboxCreate('srch_test', 'gen3=<xsl:if test="$isGen3Search">true</xsl:if><xsl:if test="not($isGen3Search)">false</xsl:if>');</script>
+		</xsl:if>
+
+		<div id="hdrcont" class="phoenix">
+
+
+			<div id="geocont">
+				<!--<xsl:if test="$flowname = 'confirm' or $isABLPage = 'true' or $pagetype = 'SearchResult'">
+					<xsl:attribute name="style">width:100px</xsl:attribute>
+				</xsl:if>
+				<xsl:if test="not($flowname = 'helpapp') and not($flowname = 'confirm') and not($isABLPage = 'true') and not($pagetype = 'SearchResult')">
+					<div id="geoname">
+						<xsl:if test="$isGen3Search">
+							<xsl:attribute name="style">display:none;</xsl:attribute>
+						</xsl:if>
+						<a href="#geoloc2" id="oll2">
+							<span style="font-size:12px;padding-right:8px;">
+								<xsl:choose>
+									<xsl:when test="$usergeo = '81'">San Francisco Bay Area (Kalifornien)</xsl:when>
+									<xsl:when test="$usergeo = '4945'">Birmingham (Alabama)</xsl:when>
+									<xsl:when test="$usergeo = '226'">Phoenix (Arizona)</xsl:when>
+									<xsl:when test="$usergeo = '3864'">Little Rock (Arkansas)</xsl:when>
+									<xsl:when test="$usergeo = '10'">Los Angeles (Kalifornien)</xsl:when>
+									<xsl:when test="$usergeo = '81689'">San Diego (Kalifornien)</xsl:when>
+									<xsl:when test="$usergeo = '81690'">Sacramento (Kalifornien)</xsl:when>
+									<xsl:when test="$usergeo = '678'">Denver (Colorado)</xsl:when>
+									<xsl:when test="$usergeo = '1869'">Hartford (Connecticut)</xsl:when>
+									<xsl:when test="$usergeo = '525'">Washington, D.C.</xsl:when>
+									<xsl:when test="$usergeo = '708'">Jacksonville (Florida)</xsl:when>
+									<xsl:when test="$usergeo = '669'">Miami und Südflorida (Florida)</xsl:when>
+									<xsl:when test="$usergeo = '663'">Orlando (Florida)</xsl:when>
+									<xsl:when test="$usergeo = '6750'">Tallahassee (Florida)</xsl:when>
+									<xsl:when test="$usergeo = '404'">Tampa (Florida)</xsl:when>
+									<xsl:when test="$usergeo = '670'">Atlanta (Georgia)</xsl:when>
+									<xsl:when test="$usergeo = '4921'">Boise (Idaho)</xsl:when>
+									<xsl:when test="$usergeo = '666'">Chicago (Illinois)</xsl:when>
+									<xsl:when test="$usergeo = '697'">Indianapolis (Indiana)</xsl:when>
+									<xsl:when test="$usergeo = '5637'">Des Moines (Iowa)</xsl:when>
+									<xsl:when test="$usergeo = '4421'">Louisville (Kentucky)</xsl:when>
+									<xsl:when test="$usergeo = '242'">New Orleans (Louisiana)</xsl:when>
+									<xsl:when test="$usergeo = '81691'">Baltimore (Maryland)</xsl:when>
+									<xsl:when test="$usergeo = '674'">Boston (Massachusetts)</xsl:when>
+									<xsl:when test="$usergeo = '676'">Detroit (Michigan)</xsl:when>
+									<xsl:when test="$usergeo = '4204'">Grand Rapids (Michigan)</xsl:when>
+									<xsl:when test="$usergeo = '680'">Minneapolis/St. Paul (Minnesota)</xsl:when>
+									<xsl:when test="$usergeo = '5543'">Jackson (Mississippi)</xsl:when>
+									<xsl:when test="$usergeo = '702'">Kansas City (Missouri)</xsl:when>
+									<xsl:when test="$usergeo = '683'">St. Louis (Missouri)</xsl:when>
+									<xsl:when test="$usergeo = '5924'">Missoula (Montana)</xsl:when>
+									<xsl:when test="$usergeo = '5530'">Lincoln (Nebraska)</xsl:when>
+									<xsl:when test="$usergeo = '689'">Las Vegas (Nevada)</xsl:when>
+									<xsl:when test="$usergeo = '5627'">Reno (Nevada)</xsl:when>
+									<xsl:when test="$usergeo = '78083'">Atlantic City (New Jersey)</xsl:when>
+									<xsl:when test="$usergeo = '5647'">Albuquerque (New Mexico)</xsl:when>
+									<xsl:when test="$usergeo = '1868'">Albany (New York)</xsl:when>
+									<xsl:when test="$usergeo = '695'">Buffalo (New York)</xsl:when>
+									<xsl:when test="$usergeo = '664'">New York, Großraum (New York)</xsl:when>
+									<xsl:when test="$usergeo = '6472'">Syracuse (New York)</xsl:when>
+									<xsl:when test="$usergeo = '684'">Charlotte (North Carolina)</xsl:when>
+									<xsl:when test="$usergeo = '685'">Raleigh-Durham (North Carolina)</xsl:when>
+									<xsl:when test="$usergeo = '4423'">Fargo (North Dakota)</xsl:when>
+									<xsl:when test="$usergeo = '11863'">Cincinnati (Ohio)</xsl:when>
+									<xsl:when test="$usergeo = '3261'">Cleveland (Ohio)</xsl:when>
+									<xsl:when test="$usergeo = '11883'">Columbus (Ohio)</xsl:when>
+									<xsl:when test="$usergeo = '3863'">Oklahoma City (Oklahoma)</xsl:when>
+									<xsl:when test="$usergeo = '704'">Portland (Oregon)</xsl:when>
+									<xsl:when test="$usergeo = '522'">Philadelphia (Pennsylvania)</xsl:when>
+									<xsl:when test="$usergeo = '681'">Pittsburgh</xsl:when>
+									<xsl:when test="$usergeo = '4481'">Charleston (South Carolina)</xsl:when>
+									<xsl:when test="$usergeo = '5630'">Columbia (South Carolina)</xsl:when>
+									<xsl:when test="$usergeo = '6743'">Sioux Falls (South Dakota)</xsl:when>
+									<xsl:when test="$usergeo = '5528'">Knoxville (Tennessee)</xsl:when>
+									<xsl:when test="$usergeo = '701'">Memphis (Tennessee)</xsl:when>
+									<xsl:when test="$usergeo = '700'">Nashville (Tennessee)</xsl:when>
+									<xsl:when test="$usergeo = '672'">Dallas (Texas)</xsl:when>
+									<xsl:when test="$usergeo = '4426'">El Paso (Texas)</xsl:when>
+									<xsl:when test="$usergeo = '694'">Houston (Texas)</xsl:when>
+									<xsl:when test="$usergeo = '3861'">Lubbock (Texas)</xsl:when>
+									<xsl:when test="$usergeo = '707'">Austin/San Antonio (Texas)</xsl:when>
+									<xsl:when test="$usergeo = '706'">Salt Lake City (Utah)</xsl:when>
+									<xsl:when test="$usergeo = '4425'">Richmond (Virginia)</xsl:when>
+									<xsl:when test="$usergeo = '693'">Seattle (Washington)</xsl:when>
+									<xsl:when test="$usergeo = '4541'">Charleston (West Virginia)</xsl:when>
+									<xsl:when test="$usergeo = '4422'">Green Bay (Wisconsin)</xsl:when>
+									<xsl:when test="$usergeo = '691'">Milwaukee (Wisconsin)</xsl:when>
+									<xsl:when test="$usergeo = '9465'">Casper (Wyoming)</xsl:when>
+									<xsl:when test="$usergeo = '5878'">Calgary (Alberta)</xsl:when>
+									<xsl:when test="$usergeo = '5877'">Edmonton (Alberta)</xsl:when>
+									<xsl:when test="$usergeo = '7126'">Fredericton (New Brunswick)</xsl:when>
+									<xsl:when test="$usergeo = '7124'">Halifax (Nova Scotia)</xsl:when>
+									<xsl:when test="$usergeo = '5879'">Montreal (Quebec)</xsl:when>
+									<xsl:when test="$usergeo = '5874'">Ottawa (Ontario)</xsl:when>
+									<xsl:when test="$usergeo = '7604'">Saskatoon (Saskatchewan)</xsl:when>
+									<xsl:when test="$usergeo = '5869'">Toronto (Ontario)</xsl:when>
+									<xsl:when test="$usergeo = '5871'">Vancouver (British Columbia)</xsl:when>
+									<xsl:when test="$usergeo = '6203'">Winnipeg (Manitoba)</xsl:when>
+									<xsl:when test="$usergeo = '201895'">Cambridge (UK)</xsl:when>
+									<xsl:when test="$usergeo = '201899'">Ely (UK)</xsl:when>
+									<xsl:when test="$usergeo = '201894'">Norwich (UK)</xsl:when>
+									<xsl:when test="$usergeo = '201892'">Peterborough (UK)</xsl:when>
+									<xsl:when test="$usergeo = '201893'">St Albans (UK)</xsl:when>
+									<xsl:when test="$usergeo = '201891'">Derby (UK)</xsl:when>
+									<xsl:when test="$usergeo = '201889'">Leicester (UK)</xsl:when>
+									<xsl:when test="$usergeo = '201888'">Lincoln (UK)</xsl:when>
+									<xsl:when test="$usergeo = '201890'">Nottingham (UK)</xsl:when>
+									<xsl:when test="$usergeo = '201934'">Westminster (UK)</xsl:when>
+									<xsl:when test="$usergeo = '6629'">London (UK)</xsl:when>
+									<xsl:when test="$usergeo = '201933'">Durham (UK)</xsl:when>
+									<xsl:when test="$usergeo = '201932'">Newcastle (UK)</xsl:when>
+									<xsl:when test="$usergeo = '201931'">Sunderland (UK)</xsl:when>
+									<xsl:when test="$usergeo = '201905'">Carlisle (UK)</xsl:when>
+									<xsl:when test="$usergeo = '201904'">Chester (UK)</xsl:when>
+									<xsl:when test="$usergeo = '201903'">Lancaster (UK)</xsl:when>
+									<xsl:when test="$usergeo = '201900'">Liverpool (UK)</xsl:when>
+									<xsl:when test="$usergeo = '201901'">Manchester (UK)</xsl:when>
+									<xsl:when test="$usergeo = '201926'">Cardiff (UK)</xsl:when>
+									<xsl:when test="$usergeo = '201902'">Salford (UK)</xsl:when>
+									<xsl:when test="$usergeo = '201924'">Armagh (UK)</xsl:when>
+									<xsl:when test="$usergeo = '201920'">Belfast (UK)</xsl:when>
+									<xsl:when test="$usergeo = '201921'">Lisburn (UK)</xsl:when>
+									<xsl:when test="$usergeo = '201922'">Derry (UK)</xsl:when>
+									<xsl:when test="$usergeo = '201925'">Newry (UK)</xsl:when>
+									<xsl:when test="$usergeo = '201941'">Brighton (UK)</xsl:when>
+									<xsl:when test="$usergeo = '201947'">Canterbury (UK)</xsl:when>
+									<xsl:when test="$usergeo = '201945'">Chichester (UK)</xsl:when>
+									<xsl:when test="$usergeo = '201944'">Oxford (UK)</xsl:when>
+									<xsl:when test="$usergeo = '201943'">Portsmouth (UK)</xsl:when>
+									<xsl:when test="$usergeo = '201942'">Southampton (UK)</xsl:when>
+									<xsl:when test="$usergeo = '201946'">Winchester (UK)</xsl:when>
+									<xsl:when test="$usergeo = '201911'">Bath (UK)</xsl:when>
+									<xsl:when test="$usergeo = '201906'">Bristol (UK)</xsl:when>
+									<xsl:when test="$usergeo = '201909'">Exeter (UK)</xsl:when>
+									<xsl:when test="$usergeo = '201910'">Gloucester (UK)</xsl:when>
+									<xsl:when test="$usergeo = '201907'">Plymouth (UK)</xsl:when>
+									<xsl:when test="$usergeo = '201908'">Salisbury (UK)</xsl:when>
+									<xsl:when test="$usergeo = '201912'">Truro (UK)</xsl:when>
+									<xsl:when test="$usergeo = '201913'">Wells (UK)</xsl:when>
+									<xsl:when test="$usergeo = '201929'">Bangor (UK)</xsl:when>
+									<xsl:when test="$usergeo = '201926'">Cardiff (UK)</xsl:when>
+									<xsl:when test="$usergeo = '201928'">Newport (UK)</xsl:when>
+									<xsl:when test="$usergeo = '201930'">St Davids (UK)</xsl:when>
+									<xsl:when test="$usergeo = '201927'">Swansea (UK)</xsl:when>
+									<xsl:when test="$usergeo = '201914'">Coventry (UK)</xsl:when>
+									<xsl:when test="$usergeo = '201918'">Hereford (UK)</xsl:when>
+									<xsl:when test="$usergeo = '201919'">Lichfield (UK)</xsl:when>
+									<xsl:when test="$usergeo = '201915'">Stoke on Trent (UK)</xsl:when>
+									<xsl:when test="$usergeo = '201916'">Wolverhampton (UK)</xsl:when>
+									<xsl:when test="$usergeo = '201917'">Worcester (UK)</xsl:when>
+									<xsl:when test="$usergeo = '201937'">Bradford (UK)</xsl:when>
+									<xsl:when test="$usergeo = '201939'">Hull (UK)</xsl:when>
+									<xsl:when test="$usergeo = '201935'">Leeds (UK)</xsl:when>
+									<xsl:when test="$usergeo = '201940'">Ripon (UK)</xsl:when>
+									<xsl:when test="$usergeo = '201936'">Sheffield (UK)</xsl:when>
+									<xsl:when test="$usergeo = '201938'">Wakefield (UK)</xsl:when>
+									<xsl:when test="$usergeo = '201983'">York (UK)</xsl:when>
+									<xsl:when test="$usergeo = '201981'">Aberdeen (UK)</xsl:when>
+									<xsl:when test="$usergeo = '201982'">Dundee (UK)</xsl:when>
+									<xsl:when test="$usergeo = '201980'">Edinburgh (UK)</xsl:when>
+									<xsl:when test="$usergeo = '10925'">Glasgow (UK)</xsl:when>
+									<xsl:when test="$usergeo = '201986'">Inverness (UK)</xsl:when>
+									<xsl:when test="$usergeo = '201987'">Stirling (UK)</xsl:when>
+									<xsl:when test="$usergeo = '204678'">Birmingham (UK)</xsl:when>
+									<xsl:when test="$usergeo = '204677'">Grimsby (UK)</xsl:when>
+									<xsl:when test="$usergeo = '204580'">Antrim (UK)</xsl:when>
+									<xsl:when test="$usergeo = '204581'">Down (UK)</xsl:when>
+									<xsl:when test="$usergeo = '204582'">Tyrone (UK)</xsl:when>
+									<xsl:when test="$usergeo = '204680'">Fermanagh (UK)</xsl:when>
+									<xsl:when test="$usergeo = '204579'">Milton Keynes (UK)</xsl:when>
+									<xsl:when test="$usergeo = '204679'">Reading (UK)</xsl:when>
+									<xsl:when test="$usergeo = '0'">Alle Orte</xsl:when>
+
+
+									<xsl:otherwise>
+										<xsl:choose>
+											<xsl:when test="contains($domain, '.co.uk')">Alle Orte</xsl:when>
+											<xsl:when test="contains($domain, '.com')">Alle Orte</xsl:when>
+											<xsl:otherwise>Alle Orte</xsl:otherwise>
+										</xsl:choose>
+									</xsl:otherwise>
+								</xsl:choose>
+							</span>
+							<span id="oll2-a" class="nodecoration arrow-7-orange arrow-7-s">&#xA0;</span>
+						</a>
+					</div>
+				</xsl:if>-->
+			</div>
+
+			<xsl:element name="div">
+				<xsl:attribute name="id">usrmncont</xsl:attribute>
+				<!--<xsl:if test="$isNewTDPage or isNewTDPage">
+					<xsl:attribute name="style">width:450px;</xsl:attribute>
+				</xsl:if>-->
+				<ul id="headermenu">
+					<li>
+						<xsl:variable name="fnamelength">
+							<xsl:value-of select="string-length($fname)"/>
+						</xsl:variable>
+						<xsl:choose>
+							<xsl:when test="$ustat = 'guestuser' or $ustat = '0'">Hallo, <a href="https://myaccount{$domain}/login/Signin">Einloggen</a> oder <a href="https://myaccount{$domain}/login/register">Anmelden</a></xsl:when>
+							<xsl:when test="$ustat = '1' or $ustat = 'loggedin'">Hallo,
+								<xsl:choose>
+									<xsl:when test="$fnamelength &gt; 10">
+										<xsl:value-of select="substring($fname,1,10)"/>
+										<a href="#bubble1" class="bubbleTrigger">...</a>
+									</xsl:when>
+									<xsl:otherwise>
+										<xsl:value-of select="$fname"/>
+									</xsl:otherwise>
+								</xsl:choose>! <a href="https://myaccount{$domain}/login/Signout">Ausloggen</a></xsl:when>
+							<xsl:when test="$ustat = 'loggedout'">Hallo,
+								<xsl:choose>
+									<xsl:when test="$fnamelength &gt; 10">
+										<xsl:value-of select="substring($fname,1,10)"/>
+										<a href="#bubble1" class="bubbleTrigger">...</a>
+									</xsl:when>
+									<xsl:otherwise>
+										<xsl:value-of select="$fname"/>
+									</xsl:otherwise>
+								</xsl:choose>! <a href="https://myaccount{$domain}/login/Signin">Einloggen</a></xsl:when>
+							<xsl:otherwise>Hallo, <a href="https://myaccount{$domain}/login/Signin">Einloggen</a> oder <a href="https://myaccount{$domain}/login/register">Anmelden</a></xsl:otherwise>
+						</xsl:choose>
+					</li>
+					<li class="pipe">|</li>
+					<li>
+						<a href="/how-stubhub-works/" title="So kaufen Sie Tickets auf StubHub" rel="nofollow">Kaufen</a>
+					</li>
+					<li class="pipe">|</li>
+					<li>
+						<a href="{concat('https://sell',$domain,'/sell/')}" title="Tickets auf StubHub verkaufen. Los geht’s!" rel="nofollow">Verkaufen</a>
+					</li>
+					<xsl:choose>
+						<xsl:when test="$flowname = 'sell2login' or (not($flowname) and $genreid and not($geoid))">
+						</xsl:when>
+						<xsl:otherwise>
+							<li class="pipe">|</li>
+						</xsl:otherwise>
+					</xsl:choose>
+					<li>
+						<a href="/help/" title="Hilfe und Kundenservice" rel="nofollow">
+							<img style="margin:0 3px 0 2px; vertical-align: bottom;" align="absmiddle" src="{$staticdomain}/promotions/scratch/common/phone_icon_16x16.png"/>Kundenservice</a>
+					</li>
+					<li class="pipe">|</li>
+					<xsl:choose>
+						<xsl:when test="$cobrandgroupid = '163' and $cobrandid !='25426'">
+							<li>
+								<a href="https://myaccount{$domain}/autobulk/bulkupload/" title="Massenupload">Massenupload</a>
+							</li>
+							<li class="pipe">|</li>
+						</xsl:when>
+						<xsl:otherwise>
+						</xsl:otherwise>
+					</xsl:choose>
+
+					<!-- LOGINBUY-52: START -->
+					<xsl:if test="($pagetype = 'BrowseGenreLeaf' or $pagetype = 'BrowseCategory' or $pagetype = 'BrowseGenre' or $pagetype = 'BrowseEvent' or $pagetype = 'BrowseTicketDetail' or $isGen3Search  or $flowname = 'browse' or $pagename = 'homepage' or $pagetype = 'SearchResult' or $pagetype = 'search' or $isNewTDPage or $isNewEDPage or $flowname = 'helpapp' or $flowname = 'EventRequestForm')">
+						<span id="fb-profile-pic" style="display: none">
+							<li>
+								<a href="http://www.facebook.com/StubHubUK">
+									<img style="width:23px;height:23px;" id="profile-pic" src="{$staticdomain}/promotions/scratch/fb/btn_FB_logo.png"/>
+								</a>
+							</li>
+						</span>
+						<li style="cursor: hand; cursor: pointer;">
+							<img id="fb-connect-header" style="display: none" src="{$staticdomain}/promotions/scratch/fb/btn_FB_connect_2.png" title="Facebook Connect"/>
+						</li>
+					</xsl:if>
+					<!-- LOGINBUY-52: END -->
+				</ul>
+			</xsl:element>
+
+
+
+			<div id="shlogo_uk">
+				<a href="{if ($isABLPage = 'true' or contains(/context/default/request/completeUrl,'myaccount.')) then concat('https://www',$domain) else '/'}" title="StubHub">
+					<img src="{$staticdomain}/promotions/scratch/lt/logo_uk.png" border="0"/>
+				</a>
+			</div>
+
+
+			<div id="hdrgrpcont">
+
+
+				<xsl:element name="div">
+					<xsl:attribute name="id">hdrrt</xsl:attribute>
+
+					<div id="tagline">Ihr Marktplatz für Tickets</div>
+
+					<form action="/search/doSearch" id="searchForm" name="searchForm" method="get" onsubmit="searchTracking();omnituretagging_header()">
+						<div id="srchcont">
+
+
+							<input class="phx_input" id="searchStr" name="searchStr" maxlength="256" size="35"
+							       onblur="if (this.value == '') this.value = 'öüEnter: Team, artist, event, venueüö';this.style.color='#888'; if(this.value != '' &amp;&amp; this.value.search('öüEnter: Team, artist, event, venueüö')==-1) this.style.color = '#888';"
+							       onfocus="if (this.value.search('öüEnter: Team, artist, event, venueüö')!=-1) this.value = ''; this.style.color='#888';" style="font-family: Arial; color: rgb(136, 136, 136); font-size: 14px;" value="öüEnter: Team, artist, event, venueüö"
+							       onkeypress="checkEnter_omnituretagging(event)" autocomplete="off" type="text"/>
+
+							<div id="searchSugCont" class="hideOnload">
+								<div id="eventHead"></div>
+								<ul id="ssEventResults">
+								</ul>
+								<div id="genreHead"></div>
+								<ul id="genreResults">
+								</ul>
+								<ul id="seeAll">
+								</ul>
+							</div>
+
+							<input autocomplete="off" name="pageNumber" value="1" type="hidden"/>
+							<input autocomplete="off" name="resultsPerPage" value="50" type="hidden"/>
+							<input autocomplete="off" name="searchMode" value="Veranstaltung" type="hidden"/>
+							<input autocomplete="off" name="start" value="0" type="hidden"/>
+							<input autocomplete="off" name="rows" value="50" type="hidden"/>
+							<input autocomplete="off" name="ae" value="2" type="hidden"/>
+							<!--<input autocomplete="off" name="cb" value="{$cobrandname}" type="hidden"/>-->
+							<!-- ######### Search Redesign - Start: Added new parameter for search ######### -->
+							<input autocomplete="off" name="geo_exp" value="1" type="hidden"/>
+							<!-- ######### Search Redesign - End #########  -->
+						</div>
+
+						<div id="srchClose" class="hideOnload"></div>
+
+						<div id="srchbtncont">
+							<button id="srchbtn" class="btn-sprite btn-sprite-medium">
+								<span class="btn-sprite-text">öüSearchüö</span>
+							</button>
+						</div>
+
+						<div id="c_srch">
+							<a id="OpenAdvanceSearch" href="#findTickets">
+								<span>Suche anpassen</span>
+								<img align="absmiddle" src="{$staticdomain}/promotions/scratch/lt/c_srch.gif"/>
+							</a>
+						</div>
+					</form>
+				</xsl:element>
+			</div>
+		</div>
+
+		<xsl:choose>
+			<xsl:when test="$flowname = 'sell2' or $flowname = 'sell2login' or ($genreid and $cobrandgroupid and $eventid = 'default' and not($geoid) and not($venue) and not($flowname))">
+				<link rel="stylesheet" type="text/css" href="{$cache14}/promotions/scratch/CSS/gen2_header_anchor.css"/>
+			</xsl:when>
+			<xsl:when test="$flowname = 'confirm'">
+				<link rel="stylesheet" type="text/css" href="{$cache14}/promotions/scratch/CSS/gen2_header_outer-right_column.css"/>
+			</xsl:when>
+			<xsl:otherwise>
+			</xsl:otherwise>
+		</xsl:choose>
+		<xsl:choose>
+			<xsl:when test="$flowname = 'browse-ticket'">
+				<div id="pp_genreid" style="display:none;">
+					<xsl:value-of select="$genreid"/>
+				</div>
+				<link rel="stylesheet" type="text/css" href="{$cache14}/promotions/scratch/CSS/ticket_details_searchbox_fix.css"/>
+			</xsl:when>
+			<xsl:otherwise>
+			</xsl:otherwise>
+		</xsl:choose>
+
+		<div id="mm">
+			<ul class="mg">
+
+				<li id="nav_upcoming">
+					<a id="upcum" class="atest" href="#">Vorschau <img src="{$staticdomain}/promotions/scratch/lt/mm_chev.png"/></a>
+					<div style="padding-left: 5px;padding-right: 5px;">
+						<ul>
+							<li>
+								<a href="#" id="weekend">Dieses Wochenende</a>
+							</li>
+							<li>
+								<a href="#" id="three">Innerhalb der nächsten 3 Tage</a>
+							</li>
+							<li>
+								<a href="#" id="seven">Innerhalb der nächsten 7 Tage</a>
+							</li>
+							<li>
+								<a href="#" id="thirty">Innerhalb der nächsten 30 Tage</a>
+							</li>
+						</ul>
+					</div>
+				</li>
+				<li id="nav_concerts">
+					<a class="atest" href="/concert-tickets/">Konzerte <img src="{$staticdomain}/promotions/scratch/lt/mm_chev.png"/></a>
+					<div id="concerts" style="padding-left: 5px;padding-right: 5px;">
+						<ul>
+							<li>
+								<a href="/classical-music-tickets/">Klassik &amp; Vokalmusik</a>
+							</li>
+							<li>
+								<a href="/country-music-tickets/">Country &amp; Folk</a>
+							</li>
+							<li>
+								<a href="/dance-music-tickets/">Dance &amp; Electronic</a>
+							</li>
+							<li>
+								<a href="/blues-rb-jazz-music-tickets/">Jazz, Blues &amp; R&amp;B</a>
+							</li>
+							<li>
+								<a href="/hip-hop-pop-and-rock-tickets/">Rock, Pop &amp; Hip-Hop</a>
+							</li>
+							<li>
+								<a href="/world-music-tickets/">Weltmusik &amp; New Age</a>
+							</li>
+							<li>
+								<a href="/music-festival-tickets/">Musikfestivals</a>
+							</li>
+							<li style="padding-top:9px;">
+								<a href="/concert-tickets/">Mehr anzeigen</a>
+							</li>
+						</ul>
+					</div>
+				</li>
+
+				<li id="nav_theater">
+					<a class="atest" href="/theatre-tickets/">Comedy &amp; Theater <img src="{$staticdomain}/promotions/scratch/lt/mm_chev.png"/></a>
+					<div id="comedy" style="padding-left: 5px;padding-right: 5px;">
+						<ul>
+							<li>
+								<a href="/musical-tickets/">Musicals</a>
+							</li>
+							<li>
+								<a href="/play-tickets/">Theaterstücke</a>
+							</li>
+							<li>
+								<a href="/ballet-dance-tickets/">Tanz</a>
+							</li>
+							<li>
+								<a href="/cirque-du-soleil-tickets/">Zirkus</a>
+							</li>
+							<li>
+								<a href="/classical-music-and-opera-tickets/">Klassik</a>
+							</li>
+							<li>
+								<a href="/comedy-tickets/">Comedy</a>
+							</li>
+							<li>
+								<a href="/family-tickets/">Familienunterhaltung</a>
+							</li>
+							<li style="padding-top:9px;">
+								<a href="/theatre-tickets/">Mehr anzeigen</a>
+							</li>
+						</ul>
+					</div>
+				</li>
+				<li id="nav_sports">
+					<a class="atest" href="/sports-tickets/">Sport <img src="{$staticdomain}/promotions/scratch/lt/mm_chev.png"/></a>
+					<div id="sports" style="padding-left: 5px;padding-right: 5px;">
+						<ul>
+							<li>
+								<a href="/soccer-tickets/">American Football</a>
+							</li>
+							<li>
+								<a href="/cricket-tickets/">Cricket</a>
+							</li>
+							<li>
+								<a href="/darts-tickets/">Dart</a>
+							</li>
+							<li>
+								<a href="/rugby-tickets/">Rugby</a>
+							</li>
+							<li>
+								<a href="/wrestling-tickets/">Wrestling</a>
+							</li>
+							<li>
+								<a href="/tennis-tickets/">Tennis</a>
+							</li>
+							<li>
+								<a href="/golf-tickets/ ">Golf</a>
+							</li>
+							<li style="padding-top:9px;">
+								<a href="/sports-tickets/">Mehr anzeigen</a>
+							</li>
+						</ul>
+					</div>
+				</li>
+
+
+				<li id="nav_fanservices">
+					<a class="atest" href="/fan-services/">Fan-Services <img src="{$staticdomain}/promotions/scratch/lt/mm_chev.png"/></a>
+					<div id="services" style="padding-left: 5px;padding-right: 5px;">
+						<ul>
+							<li>
+								<a href="/price-alerts/">Preisbenachrichtigung</a>
+							</li>
+							<li>
+								<a href="/guarantee/">Fan<i>Protect</i>-Garantie</a>
+							</li>
+							<li>
+								<a href="/pick-up-locations/">Last-Minute-Service</a>
+							</li>
+							<li>
+								<a href="/mobile/">StubHub mobil</a>
+							</li>
+							<li>
+								<a href="/gift-certificates/">Geschenkgutscheine</a>
+							</li>
+							<li style="padding-top:9px;">
+								<a href="/fan-services/">Mehr anzeigen</a>
+							</li>
+						</ul>
+					</div>
+				</li>
+
+
+				<li id="nav_myaccount">
+					<a class="atest" href="{concat('https://myaccount',$domain,'/myaccount/')}">Mein Konto <img src="{$staticdomain}/promotions/scratch/lt/mm_chev.png"/></a>
+					<div style="padding-left: 5px;padding-right: 5px;">
+						<ul>
+							<li style="color:#444444">
+								<b>Meine Veranstaltungen</b>
+							</li>
+							<li>
+								<a href="{concat('https://myaccount',$domain,'/myaccount/orders/')}" title="Bestellungen" rel="nofollow">Bestellungen</a>
+							</li>
+							<!--<li><a>Download &amp; print tickets</a></li>-->
+							<li>
+								<br/>
+							</li>
+							<li style="color:#444444">
+								<b>Ticketverkäufe</b>
+							</li>
+							<li>
+								<a href="{concat('https://myaccount',$domain,'/myaccount/listings/')}" title="Angebote" rel="nofollow">Angebote</a>
+							</li>
+							<!--<li><a>Deliver tickets</a></li>-->
+							<li>
+								<a href="{concat('https://myaccount',$domain,'/myaccount/sales/')}" title="verkaufte Tickets" rel="nofollow">verkaufte Tickets</a>
+							</li>
+							<li>
+								<a href="{concat('https://myaccount',$domain,'/myaccount/payments/')}" title="Zahlungen" rel="nofollow">Zahlungen</a>
+							</li>
+
+							<li>
+								<br/>
+							</li>
+							<li style="color:#444444">
+								<b>Alles im Griff</b>
+							</li>
+							<li>
+								<a href="{concat('https://myaccount',$domain,'/myaccount/yourinfo/')}" title="Kontaktinformationen" rel="nofollow">Kontaktinformationen</a>
+							</li>
+							<li>
+								<a href="{concat('https://myaccount',$domain,'/myaccount/favorites/')}" title="Einstellungen, Bestellungen und Angebote verwalten" rel="nofollow">Favoriten</a>
+							</li>
+						</ul>
+					</div>
+				</li>
+			</ul>
+		</div>
+
+		<xsl:if test="not($partnerHeader = 'hdrdflt2' or $partnerHeader = 'hdrdflt3' or $partnerHeader = 'hdrdflt')">
+			<xsl:choose>
+				<xsl:when test="contains(/context/default/request/completeUrl,'isGen2=1')">
+					<div style="background:url({$staticdomain}/promotions/scratch/lt/{$partnerHeader}_wd.gif) no-repeat scroll 100% 0 transparent;height:55px;clear:both; border-top:1px solid #fff;"></div>
+				</xsl:when>
+				<xsl:otherwise>
+					<div id="hdrbt"
+					     style="background: url({if ($partnerHeader != 'hdrdflt2' and $partnerHeader != 'hdrdflt3' and $partnerHeader != 'hdrdflt') then concat($staticdomain,'/promotions/scratch/lt/', $partnerHeader, '_wd.gif') else ''}) no-repeat scroll 100% 0 transparent;"></div>
+				</xsl:otherwise>
+			</xsl:choose>
+		</xsl:if>
+
+		<!-- <xsl:if test="$isGen3PageType = 'genreLeaf' or $isGen3PageType = 'intermediateGenre' or $pagetype= 'BrowseTicketDetail' or $pagetype = 'BrowseTicketDetailHtml' or $pagetype = 'search' or isGen3GeoLeafPage or $isGen3IntermediateGeoPage">
+<a href="/learnmore/"><img src="{$staticdomain}/promotions/scratch/lt/uk_beta_banner.gif" style="padding-top:10px;" /></a>
+</xsl:if> -->
+
+		<!--<div id="offer_content"/>-->
+		<script type="text/javascript">var pageType = "<xsl:value-of select="$pagetype"/>";
+var TT_variant = '';//added for STUBHUB AB testing</script>
+		<div class="mboxDefault"/>
+		<!--<script language="JavaScript1.2">mboxCreate('Global', 'pageType=<xsl:value-of select="$flowname"/>');</script>-->
+		<script language="JavaScript1.2">mboxCreate('Global', 'pageType=<xsl:value-of select="$allPageType"/>', 'section=<xsl:value-of select="$catdesc"/>', 'mbox_geoId=<xsl:value-of select="$userGeoDetected"/>', 'mbox_venueId=<xsl:value-of select="$venueId"/>','mbox_channelId=<xsl:value-of select="$channelID"/>', 'mbox_genre_grand_parent_id=<xsl:value-of select="$event_grand_parent"/>', 'mbox_genre_parent=<xsl:value-of select="$event_parent"/>', 'mbox_event_id=<xsl:value-of select="$event_id"/>');</script>
+
+		<xsl:if test="$flowname = 'sell2' or $flowname = 'sell2login' or $sellflowbarcodeflow">
+			<style>#Footer div {
+			margin-left:0px;
+			margin-right:0px;
+			}</style>
+		</xsl:if>
+		<xsl:choose>
+			<xsl:when test="$flowname = 'browse' and $geoid = '0' and $genreid = '0' and not(context/default/user)">
+				<script src="{$staticdomain}/promotions/scratch/lt/hp_ln.js" language="javascript"/>
+			</xsl:when>
+			<xsl:otherwise>
+			</xsl:otherwise>
+		</xsl:choose>
+		<!-- Added for CLP -->
+		<xsl:if test="$pagetype = 'BrowseCategory' and $catid = '1'">
+			<!--HPR : Changed the var assignment -->
+			<script language="JavaScript">var userGeoDetected = <xsl:value-of select="if ($usergeo = 'default') then '0' else $usergeo"/>;</script>
+			<!--<link href="{$staticdomain}/promotions/scratch/CSS/stubhub-RC.css" rel="stylesheet" type="text/css"/>
+			<link href="{$staticdomain}/promotions/scratch/CSS/phoenix-RC.css" rel="stylesheet" type="text/css"/>
+			<link rel="stylesheet" type="text/css" href="{$staticdomain}/promotions/scratch/CSS/concerts-content-1.0.css"/>
+			<link href="{$staticdomain}/resources/mojito/css/pattern/phoenix-1.0.css" rel="stylesheet" type="text/css"/>
+			<noscript>
+				<link href="{$staticdomain}/promotions/scratch/CSS/CLP_redesign_nonjs.css" rel="stylesheet" type="text/css"/>
+			</noscript>-->
+			<noscript>
+				<div class="njs-outerlayout">
+					<div class="njs-tl"></div>
+					<div class="njs-tr"></div>
+					<div class="contents">
+						<div class="content1">
+							<img src="{$staticdomain}/promotions/scratch/common/icon_alert_24.gif" width="14" height="14"/>
+						</div>
+						<div class="content2">Um alle Funktionen auf dieser Seite nutzen zu können, müssen Sie JavaScript aktivieren. Sie finden die JavaScript-Einstellung in den Einstellungen bzw. Internetoptionen Ihres Browsers.</div>
+					</div>
+					<div class="njs-bl"></div>
+					<div class="njs-br"></div>
+				</div>
+			</noscript>
+			<script language="JavaScript1.2">mboxCreate('concerts-tabs');</script>
+		</xsl:if>
+
+		<!-- ######### Search Redesign - Removing Concerts Finder from search: start ######### -->
+		<!--<xsl:if test="$pagetype = 'SearchResult'">
+			<script language="JavaScript">var userGeoDetected = 0;</script>
+			<link href="{$staticdomain}/promotions/scratch/CSS/Concerts_Finder_Search.css" rel="stylesheet" type="text/css"/>
+		</xsl:if>-->
+		<!-- ######### Search Redesign - Removing Concerts Finder from search: End #########  -->
+
+		<!-- ######### BUG#24521 - Start ##### -->
+		<xsl:if test="$pagetype= 'BrowseGenreLeaf' or $pagetype= 'BrowseCategory' or $pagetype= 'BrowseGenre' or $pagetype= 'BrowseEvent' or $pagetype = 'BrowseEventHtml' or $pagetype = 'BrowseEventHtmlFluid' or $pagetype= 'BrowseTicketDetail' or $pagetype = 'BrowseTicketDetailHtml' or $pagetype= 'SearchResult' or $pagetype= 'HomePage' or $flowname ='helpapp' or $flowname='browse' or $flowname = 'content' or $pagetype= 'myaccount'">
+			<!-- ######### BUG#24521 - End ##### -->
+			<script language="JavaScript">var s_account="<xsl:choose><xsl:when test="contains($domain,'stubhub.co.uk')">stubhubukprod</xsl:when><xsl:otherwise>stubhubukdev</xsl:otherwise></xsl:choose>";</script>
+			<script language="JavaScript" src="{$staticdomain}/promotions/scratch/test/s_code_common_20130718.js"/>
+		</xsl:if>
+
+		<xsl:if test="$isGen3HomePage">
+			<script language="JavaScript">mboxCreate('homepage-rightrail-test');</script>
+		</xsl:if>
+		<!--<h2>We are experiencing issues purchasing tickets on our site. We are working hard to resolve the issue and apologize for the inconvenience.</h2>-->
+		<!-- View From Section ATT Park -->
+		<xsl:if test="$geo_parent_id = '82'">
+			<div class="mboxDefault"></div>
+			<script language="JavaScript1.2">mboxCreate('vfs_att');</script>
+		</xsl:if>
+		<xsl:if test="$pagetype = 'BrowseEventHtmlFluid' and $cobrandid ='3662'">
+			<div class="mboxDefault"></div>
+			<script language="JavaScript1.2">mboxCreate('vfs_bigmaps_uk_prod_cobrand');</script>
+		</xsl:if>
+		<xsl:if test="$pagetype = 'BrowseEventHtmlFluid' and $cobrandid !='3662'">
+			<div class="mboxDefault"></div>
+			<script language="JavaScript1.2">mboxCreate('vfs_bigmaps_uk_prod');</script>
+		</xsl:if>
+
+		<script>var userGeo = '<xsl:value-of select="if ($usergeo = 'default') then '0' else $usergeo"/>';
+var intlDomain = '<xsl:value-of select="$domain"/>';
+var contentPagetype = '<xsl:value-of select="/context/default/gen3PageType"/>';
+var chId= '<xsl:value-of select="$channelId"/>';
+var cid= '<xsl:value-of select="$catid"/>';</script>
+
+		<div style="clear:both"></div>
+		<!--<xsl:if test="$catid = '174' or $channelId='174' ">
+			<script type="text/javascript">$("#nav_theater > a.atest").addClass("highlight");</script>
+					</xsl:if>
+<xsl:if test="$catid = '28' or $channelId='28' ">
+			<script type="text/javascript">$("#nav_sports > a.atest").addClass("highlight");</script>
+					</xsl:if>
+<xsl:if test="$catid = '1' or $channelId='1' ">
+			<script type="text/javascript">$("#nav_concerts > a.atest").addClass("highlight");</script>
+					</xsl:if>-->
+	</xsl:template>
+</xsl:stylesheet>
